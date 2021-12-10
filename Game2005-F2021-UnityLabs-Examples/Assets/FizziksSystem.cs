@@ -86,17 +86,17 @@ public class FizziksSystem : MonoBehaviour
                     AABBAABBCollision((FizziksColliderAABB)objectA.shape, (FizziksColliderAABB)objectB.shape);
                 }
 
-                //if (objectA.shape.GetCollisionShape() == CollisionShape.Sphere &&
-                //  objectB.shape.GetCollisionShape() == CollisionShape.AABB)
-                //{
-                //    SphereAABBCollision((FizziksColliderSphere)objectA.shape, (FizziksColliderAABB)objectB.shape);
-                //}
+                if (objectA.shape.GetCollisionShape() == CollisionShape.Sphere &&
+                  objectB.shape.GetCollisionShape() == CollisionShape.AABB)
+                {
+                    SphereAABBCollision((FizziksColliderSphere)objectA.shape, (FizziksColliderAABB)objectB.shape);
+                }
 
-                //if (objectA.shape.GetCollisionShape() == CollisionShape.AABB &&
-                // objectB.shape.GetCollisionShape() == CollisionShape.Sphere)
-                //{
-                //    SphereAABBCollision((FizziksColliderSphere)objectB.shape, (FizziksColliderAABB)objectA.shape);
-                //}
+                if (objectA.shape.GetCollisionShape() == CollisionShape.AABB &&
+                 objectB.shape.GetCollisionShape() == CollisionShape.Sphere)
+                {
+                    SphereAABBCollision((FizziksColliderSphere)objectB.shape, (FizziksColliderAABB)objectA.shape);
+                }
             }
         }
     }
