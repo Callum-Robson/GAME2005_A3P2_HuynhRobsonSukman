@@ -162,16 +162,16 @@ public class FizziksSystem : MonoBehaviour
             return; // no collision!
         }
 
-        Vector3 normal = new Vector3(0, 0, 0);
-        Vector3 minimumTranslationVectorAtoB = new Vector3(0, 0, 0);
+        Vector3 normal = new Vector3(Mathf.Sign(displacementAB.x), 0, 0);
+        Vector3 minimumTranslationVectorAtoB = normal * penetrationX;
 
 
         //Find the shortest penetration to move along
-        if (penetrationX < penetrationY && penetrationX < penetrationZ)
-        {
-        	normal = new Vector3(Mathf.Sign(displacementAB.x), 0, 0);
-        	minimumTranslationVectorAtoB = normal * penetrationX;
-        }
+        //if (penetrationX < penetrationY && penetrationX < penetrationZ)
+        //{
+        //	normal = new Vector3(Mathf.Sign(displacementAB.x), 0, 0);
+        //	minimumTranslationVectorAtoB = normal * penetrationX;
+        //}
 
         if (penetrationY < penetrationX && penetrationY < penetrationZ)
         {
@@ -397,10 +397,10 @@ public class FizziksSystem : MonoBehaviour
             //(impulse = changeInVelocity * objectA.mass
             float impulse = changeInVelocity * objectA.mass;
             //only A changes velocity
-            Debug.Log("ObjectA velocity = " + objectA.velocity);
+            //Debug.Log("ObjectA velocity = " + objectA.velocity);
             objectA.velocity -= collision.collisionNormalAtoB * (impulse / objectA.mass);
-            Debug.Log("ObjectA velocity = " + objectA.velocity);
-            Debug.Log("ObjectA velocity = " + objectA.velocity);
+            //Debug.Log("ObjectA velocity = " + objectA.velocity);
+            //Debug.Log("ObjectA velocity = " + objectA.velocity);
         }
         else if (!objectB.lockPosition && objectA.lockPosition)
         {
@@ -422,8 +422,7 @@ public class FizziksSystem : MonoBehaviour
 
     void ApplyFriction(CollisionInfo collision, Vector3 relativeSurfaceVelocity)
     {
-        if (Mathf.Abs(relativeSurfaceVelocity.x) > 0)
-        {
+       
             //Need two objects
             FizziksObject a = collision.objectA.kinematicsObject;
             FizziksObject b = collision.objectB.kinematicsObject;
@@ -440,9 +439,9 @@ public class FizziksSystem : MonoBehaviour
             //Force along the Normal (using only gravity)
             //Relative Velocity along the common surfaces
             Vector3 directionOfFriction = relativeSurfaceVelocity / relativeSpeed;
-            Debug.Log("Relative Surfave Velocity.Magnitude: " + relativeSurfaceVelocity.magnitude);
-            Debug.Log("Relative Surfave Velocity: " + relativeSurfaceVelocity);
-            Debug.Log("Relative Speed: " + relativeSpeed);
+            //Debug.Log("Relative Surfave Velocity.Magnitude: " + relativeSurfaceVelocity.magnitude);
+            //Debug.Log("Relative Surfave Velocity: " + relativeSurfaceVelocity);
+            //Debug.Log("Relative Speed: " + relativeSpeed);
 
             //Choose a coefficient of Friction (can choose in different ways as long as it depends on both objects)
             //Can choose based on some average(), or a min(), or max(), or lookup from a table
@@ -465,20 +464,13 @@ public class FizziksSystem : MonoBehaviour
             //}
             if (!a.lockPosition)
             {
-                if (relativeSpeed > 0.08)
-                {
-                    a.velocity -= accelerationFriction * Time.fixedDeltaTime;
-                    Debug.Log("Friction updating velocity A");
-                }
+               a.velocity += accelerationFriction * Time.fixedDeltaTime;
+               Debug.Log("Friction updating velocity A");
             }
             if (!b.lockPosition)
             {
-                if (relativeSpeed > 0.08)
-                {
-                    b.velocity += accelerationFriction * Time.fixedDeltaTime;
-                    Debug.Log("Friction updating velocity B");
-                }
+                b.velocity += accelerationFriction * Time.fixedDeltaTime;
+                Debug.Log("Friction updating velocity B");
             }
-        }
     } 
 }
