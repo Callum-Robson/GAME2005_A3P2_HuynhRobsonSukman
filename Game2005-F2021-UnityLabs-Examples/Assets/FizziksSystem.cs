@@ -192,6 +192,7 @@ public class FizziksSystem : MonoBehaviour
         minimumTranslationVectorAtoB,
         normal,
         contactPoint);
+
     }
 
     void SphereSphereCollision(FizziksColliderSphere a, FizziksColliderSphere b)
@@ -282,6 +283,8 @@ public class FizziksSystem : MonoBehaviour
         minimumTranslationVectorAtoB,
         normal,
         contactPoint);
+
+       
     }
 
     void SpherePlaneCollision(FizziksColliderSphere a, FizziksColliderPlane b)
@@ -337,13 +340,15 @@ public class FizziksSystem : MonoBehaviour
             contact);
     }
   
-    private void ApplyMinimumTranslationVector(FizziksObject a, FizziksObject b, Vector3 minimumTranslationVectorAtoB, Vector3 normal, Vector3 contactPoint)
+    void ApplyMinimumTranslationVector(FizziksObject a, FizziksObject b, Vector3 minimumTranslationVectorAtoB, Vector3 normal, Vector3 contactPoint)
     {
         GetLockedMovementScalars(a, b, out float movementScalarA, out float movementScalarB);
 
+        // Vectors to move apart overlapping objects
         Vector3 translationVectorA = -minimumTranslationVectorAtoB * movementScalarA;
         Vector3 translationVectorB = minimumTranslationVectorAtoB * movementScalarB;
 
+        // Moving them apart
         a.transform.position += translationVectorA;
         b.transform.position += translationVectorB;
 
@@ -358,19 +363,23 @@ public class FizziksSystem : MonoBehaviour
 
     void ApplyKinematicsCollisionResponse(CollisionInfo collision)
     {
+        Debug.Log("ApplyKinematicsCollisionResponse");
         FizziksObject objectA = collision.objectA.kinematicsObject;
         FizziksObject objectB = collision.objectB.kinematicsObject;
 
         //Find relative velocity between objects
         //Velocity of B relative to A
         Vector3 relativeVelocityAtoB = objectB.velocity - objectA.velocity;
+        Debug.Log("1.Relative Velocity AtoB " + relativeVelocityAtoB);
 
         float relativeNormalVelocityAtoB = Vector3.Dot(relativeVelocityAtoB, collision.collisionNormalAtoB);
+        Debug.Log("2.Relative normal Velocity AtoB " + relativeNormalVelocityAtoB);
 
         //Determine coefficient of restitution
 
         float restitution = 0.5f * (objectA.bounciness + objectB.bounciness);
         float changeInVelocity = -relativeNormalVelocityAtoB * (1.0f + restitution);
+        Debug.Log("3.Change in Velocity " + changeInVelocity);
 
         //Early exit if the objects are already moving away from each other
         //-->N
@@ -396,10 +405,11 @@ public class FizziksSystem : MonoBehaviour
         {
             //(impulse = changeInVelocity * objectA.mass
             float impulse = changeInVelocity * objectA.mass;
+            Debug.Log("4.Impulse " + impulse);
             //only A changes velocity
             //Debug.Log("ObjectA velocity = " + objectA.velocity);
             objectA.velocity -= collision.collisionNormalAtoB * (impulse / objectA.mass);
-            //Debug.Log("ObjectA velocity = " + objectA.velocity);
+            //Debug.Log("ObjectA velocity changed by  " + collision.collisionNormalAtoB * (impulse / objectA.mass));
             //Debug.Log("ObjectA velocity = " + objectA.velocity);
         }
         else if (!objectB.lockPosition && objectA.lockPosition)
@@ -417,60 +427,68 @@ public class FizziksSystem : MonoBehaviour
         }
 
         Vector3 relativeSurfaceVelocity = relativeVelocityAtoB - (relativeNormalVelocityAtoB * collision.collisionNormalAtoB);
-        ApplyFriction(collision, relativeSurfaceVelocity);
+        Debug.Log("5.Relative Surface Velocity " + relativeSurfaceVelocity);
+
+       ApplyFriction(collision, relativeSurfaceVelocity);
     }
 
     void ApplyFriction(CollisionInfo collision, Vector3 relativeSurfaceVelocity)
     {
-       
-            //Need two objects
-            FizziksObject a = collision.objectA.kinematicsObject;
-            FizziksObject b = collision.objectB.kinematicsObject;
+        Debug.Log("ApplyFriction");
+        //Need two objects
+        FizziksObject a = collision.objectA.kinematicsObject;
+        FizziksObject b = collision.objectB.kinematicsObject;
 
-            float relativeSpeed = relativeSurfaceVelocity.magnitude;
-            float minSpeedToApplyFriction = 0.001f;
+        float relativeSpeed = relativeSurfaceVelocity.magnitude;
+        Debug.Log("6.Relative Speed " + relativeSpeed);
+        float minSpeedToApplyFriction = 0.1f;
 
-            if (relativeSpeed < minSpeedToApplyFriction)
-            {
-                return;
-            }
+        if (relativeSpeed < minSpeedToApplyFriction)
+        {
+            a.velocity = new Vector3(0.0f, 0.0f, 0.0f);
+            Debug.Log("relative speed too small to apply friction");
+            return;
+        }
 
-            //Normal
-            //Force along the Normal (using only gravity)
-            //Relative Velocity along the common surfaces
-            Vector3 directionOfFriction = relativeSurfaceVelocity / relativeSpeed;
-            //Debug.Log("Relative Surfave Velocity.Magnitude: " + relativeSurfaceVelocity.magnitude);
-            //Debug.Log("Relative Surfave Velocity: " + relativeSurfaceVelocity);
-            //Debug.Log("Relative Speed: " + relativeSpeed);
+        //Normal
+        //Force along the Normal (using only gravity)
+        //Relative Velocity along the common surfaces
+        Vector3 directionOfFriction = relativeSurfaceVelocity / relativeSpeed;
+        Debug.Log("7. Direction of Friction " + directionOfFriction);
+        //Debug.Log("Relative Surfave Velocity.Magnitude: " + relativeSurfaceVelocity.magnitude);
+        //Debug.Log("Relative Surfave Velocity: " + relativeSurfaceVelocity);
+        //Debug.Log("Relative Speed: " + relativeSpeed);
 
-            //Choose a coefficient of Friction (can choose in different ways as long as it depends on both objects)
-            //Can choose based on some average(), or a min(), or max(), or lookup from a table
-            float kFrictionCoefficient = 0.5f * (a.frictioniness + b.frictioniness);
+       //Choose a coefficient of Friction (can choose in different ways as long as it depends on both objects)
+       //Can choose based on some average(), or a min(), or max(), or lookup from a table
+       float kFrictionCoefficient = 0.5f * (a.frictioniness + b.frictioniness);
 
-            //Magnitude of friction force is coefficient of friction times the normal force
-            float gravityDotNormal = Vector3.Dot(gravity, collision.collisionNormalAtoB); // Equivalent to force / mass
-            Vector3 accelerationFriction = (gravityDotNormal * kFrictionCoefficient * directionOfFriction);
-           
+        //Magnitude of friction force is coefficient of friction times the normal force
+        float gravityDotNormal = Vector3.Dot(gravity, collision.collisionNormalAtoB); // Equivalent to force / mass
+        Debug.Log("8. GravityDotNormal " + gravityDotNormal);
+        Vector3 accelerationFriction = (gravityDotNormal * kFrictionCoefficient * directionOfFriction);
+        Debug.Log("9. Acceleration Friction " + accelerationFriction);
+        
 
-            //Apply the frictional force to objects (probably also take into account the "Lock Position"
+        //Apply the frictional force to objects (probably also take into account the "Lock Position"
 
-            //Technically not correct for all cases, but should look okay
+        //Technically not correct for all cases, but should look okay
 
-            //if (!a.lockPosition && a.shape.GetCollisionShape() == CollisionShape.Sphere)
-            //{
-            //    a.velocity += accelerationFriction * Time.fixedDeltaTime;
-            //    Debug.Log("Direction Friction " + directionOfFriction);
-            //    Debug.Log("Acceleration Friction " + accelerationFriction);
-            //}
-            if (!a.lockPosition)
-            {
-               a.velocity += accelerationFriction * Time.fixedDeltaTime;
-               Debug.Log("Friction updating velocity A");
-            }
-            if (!b.lockPosition)
-            {
-                b.velocity += accelerationFriction * Time.fixedDeltaTime;
-                Debug.Log("Friction updating velocity B");
-            }
+         //if (!a.lockPosition && a.shape.GetCollisionShape() == CollisionShape.Sphere)
+         //{
+         //    a.velocity += accelerationFriction * Time.fixedDeltaTime;
+         //    Debug.Log("Direction Friction " + directionOfFriction);
+         //    Debug.Log("Acceleration Friction " + accelerationFriction);
+         //}
+        if (!a.lockPosition)
+        {
+            a.velocity += accelerationFriction * Time.fixedDeltaTime;
+           //Debug.Log("Friction changing velocity A by " + accelerationFriction * Time.fixedDeltaTime);
+        }
+        if (!b.lockPosition)
+        {
+            b.velocity += accelerationFriction * Time.fixedDeltaTime;
+            //Debug.Log("Friction changing velocity B by " + accelerationFriction * Time.fixedDeltaTime);
+        }
     } 
 }
