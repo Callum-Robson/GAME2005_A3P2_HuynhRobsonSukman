@@ -445,10 +445,31 @@ public class FizziksSystem : MonoBehaviour
 
         if (relativeSpeed < minSpeedToApplyFriction)
         {
-            a.velocity = new Vector3(0.0f, 0.0f, 0.0f);
+            a.velocity.x = 0;
+            a.velocity.z = 0;
+            //a.velocity = new Vector3(0.0f, 0.0f, 0.0f);
             Debug.Log("relative speed too small to apply friction");
             return;
         }
+
+        //if (relativeSurfaceVelocity.x < minSpeedToApplyFriction && relativeSurfaceVelocity.z < minSpeedToApplyFriction)
+        //{
+        //    a.velocity.x = 0;
+        //    a.velocity.z = 0;
+        //    return;
+        //}
+        //else if (relativeSurfaceVelocity.x < minSpeedToApplyFriction && relativeSurfaceVelocity.y < minSpeedToApplyFriction)
+        //{
+        //    a.velocity.x = 0;
+        //    a.velocity.y = 0;
+        //    return;
+        //}
+        //else if (relativeSurfaceVelocity.y < minSpeedToApplyFriction && relativeSurfaceVelocity.z < minSpeedToApplyFriction)
+        //{
+        //    a.velocity.y = 0;
+        //    a.velocity.z = 0;
+        //    return;
+        //}
 
         //Normal
         //Force along the Normal (using only gravity)
