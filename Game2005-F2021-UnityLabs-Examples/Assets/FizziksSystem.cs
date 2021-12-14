@@ -6,6 +6,7 @@ public class FizziksSystem : MonoBehaviour
 {
     public Vector3 gravity = new Vector3(0, -9.81f, 0);
     public List<FizziksObject> fizziksObjects = new List<FizziksObject>();
+    public GameObject camera;
 
     //Smallest distance before things get FUNKY
     public float minimumDistance = 0.0001f;
@@ -39,6 +40,22 @@ public class FizziksSystem : MonoBehaviour
             }
         }
 
+        if (Input.GetKeyDown(KeyCode.Y))
+        {
+            MoveToCamera(fizziksObjects[0]);
+        }
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            MoveToCamera(fizziksObjects[1]);
+        }
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            MoveToCamera(fizziksObjects[2]);
+        }
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            MoveToCamera(fizziksObjects[3]);
+        }
 
         CollisionUpdate();
     }
@@ -511,5 +528,11 @@ public class FizziksSystem : MonoBehaviour
             b.velocity += accelerationFriction * Time.fixedDeltaTime;
             //Debug.Log("Friction changing velocity B by " + accelerationFriction * Time.fixedDeltaTime);
         }
-    } 
+    }
+
+    private void MoveToCamera(FizziksObject obj)
+    {
+        obj.transform.position = new Vector3(camera.transform.position.x, camera.transform.position.y + 3, camera.transform.position.z + 5);
+        obj.velocity = new Vector3(0, 0, 30);
+    }
 }
